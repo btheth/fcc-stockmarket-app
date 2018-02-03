@@ -54,9 +54,25 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'client/build')));
+
+var port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+
+var server = http.createServer(app);
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+
+var app = require('express')();
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
 //this api is not very reliable and it's sort of slow, but I couldn't find a better free one so I set this up in a sort of queue structure
 //this is the function that gets data from the API, returning a promise to be used when complete - returns array of objects with stock data
@@ -274,21 +290,10 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-var port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
 
-/**
- * Create HTTP server.
- */
 
-var server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-io.listen(process.env.PORT)
-//server.listen(port);
+server.listen(port);
+//io.listen(server);
 server.on('error', onError);
 server.on('listening', onListening);
 
