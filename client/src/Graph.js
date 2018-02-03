@@ -23,7 +23,7 @@ class Graph extends Component {
     d3.select("svg").remove();
 
     const svg = d3.select("#Graph").append("svg").attr("width",w).attr("height",h),
-                margin = {top: 20, right: 50, bottom: 50, left: 50},
+                margin = {top: 20, right: 50, bottom: 50, left: 70},
                 width = +w - margin.left - margin.right,
                 height = +h - margin.top - margin.bottom,
                 g = svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")");
@@ -57,7 +57,7 @@ class Graph extends Component {
 
       svg.append("text")
           .attr("x", (legendSpace/2)+i*legendSpace)
-          .attr("y", height + margin.bottom + 5)
+          .attr("y", height + margin.bottom - 10)
           .style("font", "15px sans-serif")
           .style("fill", function() {
               return d.color = z(d.key); })
@@ -75,7 +75,7 @@ class Graph extends Component {
       .attr("y2", margin.top)
       .attr("stroke-width","11")
       .attr("stroke","transparent")
-      .style("opacity", .7);
+      .style("opacity", .5);
 
     svg.selectAll("cirlce")
       .data(data)
@@ -108,7 +108,7 @@ class Graph extends Component {
       .attr("fill", "#000")
       .attr("transform", "rotate(-90)")
       .attr("x", -((h / 2)) + margin.top)
-      .attr("y", -30)
+      .attr("y", -35)
       .style("font", "15px sans-serif")
       .text("Price ($)");
   }
