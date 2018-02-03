@@ -21,7 +21,7 @@ class App extends Component {
     return (
       <div className="App">
         <h1>Real Time Stock Chart</h1>
-        <h2>Powered by socket.io and <a href="https://www.alphavantage.co/" target="_blank">alphavantage</a>*</h2>
+        <h2>Powered by socket.io and <a href="https://www.alphavantage.co/" target="_blank" rel="noopener noreferrer">alphavantage</a>*</h2>
         <h3>*API can be a little slow...give it a minute</h3>
         <Graph stocks={this.state.stocks} data={this.state.data} />
         <Body stocks={this.state.stocks} />
