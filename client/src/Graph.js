@@ -11,7 +11,7 @@ class Graph extends Component {
   graphData() {
     const w = 1000;
     const h = 500;
-    const r = 2;
+    const r = 5;
     const data = this.props.data.filter(d => new Date(d.date).getTime() === new Date(this.props.data[0].date).getTime());
     const dataNest = d3.nest().key(d => d.name).entries(data);
 
@@ -32,7 +32,10 @@ class Graph extends Component {
     const y =  d3.scaleLinear().rangeRound([height, 0]);
     const z = d3.scaleOrdinal(d3.schemeCategory20);
 
-    x.domain(d3.extent(data, function(d) { return d.epoch; }));
+    x.domain([
+      d3.min(data, function(d) { return d.epoch; }),
+      d3.min(data, function(d) { return d.epoch; }) + 23400000
+      ]);
     y.domain([
       Math.max(0,d3.min(data, function(d) { return d.closePrice; }) - 5), 
       d3.max(data, function(d) { return d.closePrice; }) + 5
@@ -70,8 +73,9 @@ class Graph extends Component {
       .attr("x2", (d) => x(d.epoch) + margin.left)
       .attr("y1", h - margin.bottom)
       .attr("y2", margin.top)
-      .attr("stroke-width","3")
+      .attr("stroke-width","11")
       .attr("stroke","transparent")
+      .style("opacity", .7);
 
     svg.selectAll("cirlce")
       .data(data)
@@ -80,7 +84,7 @@ class Graph extends Component {
       .attr("cx", (d) => x(d.epoch))
       .attr("cy", (d) => y(d.closePrice))
       .attr("r", r)
-      .style("fill", (d) => z(d.name))
+      .style("fill", "transparent")
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
       .on("mouseover", function(d) {    
         div.transition()    
