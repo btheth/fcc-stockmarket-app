@@ -103,10 +103,6 @@ class Graph extends Component {
       });;
 
     g.append("g")
-      .attr("transform", "translate(0," + height + ")")
-      .call(d3.axisBottom(x));
-
-    g.append("g")
       .call(d3.axisLeft(y))
       .append("text")
       .attr("fill", "#000")
