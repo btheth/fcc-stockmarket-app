@@ -1,16 +1,30 @@
-var debug = require('debug')('stock-market-chart:server');
-var http = require('http');
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var bodyParser = require('body-parser');
-var io = require('socket.io')(http);
-let fetch = require('node-fetch');
-require('dotenv').load();
+const express = require('express');
+const path = require('path');
+const http = require('http');
+const fetch = require('node-fetch');
+//require('dotenv').load();
+
+const app = express();
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'client/build')));
+
+// The "catchall" handler: for any request that doesn't
+// match one above, send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname+'/client/build/index.html'));
+});
+
+const port = process.env.PORT || 5000;
+//app.listen(port);
+
+const server = http.Server(app);
+const io = require('socket.io')(server);
+
+server.listen(port);
 
 //a bunch of API constants
-const apiKey = process.env.APIKEY;
+const apiKey = "X9CPF2V0QM0ACD5M";
 
 const OPENKEY = "1. open";
 const HIGHKEY = "2. high";
@@ -48,45 +62,19 @@ let resetting = false;
 var latest = new Date().getTime();
 const rePullMs = 300000;
 
-var app = express();
-
-app.use(logger('dev'));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, 'client/build')));
-
-var port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
-
-/**
- * Create HTTP server.
- */
-
-var server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-var app = require('express')();
-var server = require('http').Server(app);
-var io = require('socket.io')(server);
-
 //this api is not very reliable and it's sort of slow, but I couldn't find a better free one so I set this up in a sort of queue structure
 //this is the function that gets data from the API, returning a promise to be used when complete - returns array of objects with stock data
 function getData(stock) {
   return new Promise((resolve, reject) => {
   	const apiUrl = baseIntraDayUrl + stock + endUrl;
-  	//console.log(apiUrl);
+  	console.log(apiUrl);
     fetch(apiUrl)
       .then(res => {return res.json();})
       .then(data => 
         {
         	let newData = [];
         	if (data["Time Series (5min)"]) {
-        		//console.log('good data recieved')
+        		console.log('good data recieved')
         		newData = Object.keys(data["Time Series (5min)"]).map(key => 
             		({
 	            	    name: stock,
@@ -106,7 +94,7 @@ function getData(stock) {
       )
       .catch(err => {
       	//on failure for whatever reason (not uncommon) push stock to failure queue
-    	//console.log('promise failed');
+    	console.log('promise failed');
     	failed.push(stock);
     	console.log(failed);
       })
@@ -114,13 +102,13 @@ function getData(stock) {
 }
 
 
-//process.on('unhandledRejection', (reason) => {
-//   console.log('Unhandled Rejection: ' + reason);
-//});
+process.on('unhandledRejection', (reason) => {
+   console.log('Unhandled Rejection: ' + reason);
+});
 
 //websocket handling
 io.on('connection', function(socket){
-  //console.log('a user connected');
+  console.log('a user connected');
   //console.log(stocks);
   //console.log(queue);
   //console.log(running);
@@ -131,7 +119,7 @@ io.on('connection', function(socket){
 
 		//see if we need to reset current stocks
 		if(!draining && !resetting && (time >= latest + rePullMs)) {
-			//console.log('resetting');
+			console.log('resetting');
 			resetting = true;
 			latest = time;
 
@@ -232,26 +220,26 @@ io.on('connection', function(socket){
 
 	//when new client connects, send it the current array of stocks and the current dataset
 	socket.on('subscribeToStocks', () => {
-    	//console.log('client requesting stocks');
+    	console.log('client requesting stocks');
    		socket.emit('returnStocks', {stocks:stocks, data:data});
   	});
 
 	//handle client trying to add a new stock
   	socket.on('stockAdded', (stock) => {
-  		//console.log('client attemptimg to add stock ' + stock);
+  		console.log('client attemptimg to add stock ' + stock);
   		//check if the stock is in any of our arrays - if not then put it in the queue
   		if (stocks.indexOf(stock) == -1 && queue.indexOf(stock) == -1 && running.indexOf(stock) == -1) {
-  			//console.log("stock added");
+  			console.log("stock added");
   			 queue.push(stock);
   		} else {
   			//otherwise do nothing
-  			//console.log("stock already in stocks, queue, or running")
+  			console.log("stock already in stocks, queue, or running")
   		}
   	});
 
   	//handle client removing stock
   	socket.on('stockRemoved', (stock) => {
-  		//console.log('client removed stock ' + stock);
+  		console.log('client removed stock ' + stock);
 
   		//splice stock out of stock array
   		const index = stocks.indexOf(stock);
@@ -271,94 +259,3 @@ io.on('connection', function(socket){
   	})
 
 });
-
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname+'/client/build/index.html'));
-});
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
-
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
-
-
-
-server.listen(port);
-//io.listen(server);
-server.on('error', onError);
-server.on('listening', onListening);
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
-
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-
-  return false;
-}
-
-/**
- * Event listener for HTTP server "error" event.
- */
-
-function onError(error) {
-  if (error.syscall !== 'listen') {
-    throw error;
-  }
-
-  var bind = typeof port === 'string'
-    ? 'Pipe ' + port
-    : 'Port ' + port;
-
-  // handle specific listen errors with friendly messages
-  switch (error.code) {
-    case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
-      process.exit(1);
-      break;
-    case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
-      process.exit(1);
-      break;
-    default:
-      throw error;
-  }
-}
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  var addr = server.address();
-  var bind = typeof addr === 'string'
-    ? 'pipe ' + addr
-    : 'port ' + addr.port;
-  debug('Listening on ' + bind);
-}
-
-module.exports = app;
