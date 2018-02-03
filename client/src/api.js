@@ -1,6 +1,6 @@
 import openSocket from 'socket.io-client';
 require('dotenv').load();
-const socket = openSocket('http://localhost:8080');
+const socket = openSocket('https://fcc-stock-chart-btheth.herokuapp.com:' + process.env.PORT);
 
 function subscribeToStocks(cb) {
 	socket.on('returnStocks', stocks => {

@@ -54,6 +54,10 @@ app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
+
+// Serve static files from the React app
+app.use(express.static(path.join(__dirname, 'client/build')));
+
 //this api is not very reliable and it's sort of slow, but I couldn't find a better free one so I set this up in a sort of queue structure
 //this is the function that gets data from the API, returning a promise to be used when complete - returns array of objects with stock data
 function getData(stock) {

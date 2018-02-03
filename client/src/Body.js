@@ -6,7 +6,7 @@ require('dotenv').load();
 
 //todo: hide this api check on server and serve messages from server
 //for now, add API key here to make this work
-const apiKey = 'demo';
+const apiKey = 'X9CPF2V0QM0ACD5M';
 
 const baseUrl = "https://www.alphavantage.co/query?function=BATCH_STOCK_QUOTES&symbols=";
 const endUrl = "&apikey=" + apiKey;
